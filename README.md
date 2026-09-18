@@ -6,6 +6,8 @@ A reusable skill and offline pipeline for project-specific org charts, capabilit
 
 ![Example organization](docs/orgchart.svg)
 
+Generated diagrams use the neon enterprise infographic style of the original quant workflows: hexagonal executive cards, color-coded workstream panels, circuit details and glowing reporting lines. Charts remain deterministic SVGs generated from the actual roster.
+
 ## Supported scope
 
 This release supports an **offline organization compiler and governance workflow in a trusted local workspace**. It does not start agents. Your host enforces identity, tools, filesystem scopes, task ownership, runtime budgets and external-action authorization. A JSON field saying `actor: "user"` is an audit record, not authentication. See [readiness and validation](docs/READINESS.md) for tested behavior and deployment requirements.

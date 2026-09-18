@@ -306,6 +306,111 @@ def render(org, output):
         return _render(org, output)
 
 
+def enterprise_svg(org):
+    """Deterministic neon enterprise infographic; reporting edges remain authoritative."""
+    roles, _ = indexes(org)
+    levels = {}
+    for role in roles.values():
+        levels.setdefault(depth(role, roles), []).append(role)
+    card_w, card_h, gap = 420, 110, 70
+    width = max(1440, max(len(v) for v in levels.values()) * (card_w + gap) + 100)
+    height = max(600, 515 + (max(levels)-2)*165)
+    positions = {"user": (45, 108)}
+    for level, entries in sorted(levels.items()):
+        for i, role in enumerate(entries):
+            x = (width - len(entries) * (card_w + gap) + gap) / 2 + i * (card_w + gap)
+            positions[role["id"]] = (x, 108 if level == 1 else 285 + (level-2)*165)
+    palette = ["#42e6b5", "#65b7ff", "#cd85ff", "#f5d275"]
+    chief = next(r for r in roles.values() if r["reports_to"] == "user")
+    departments = [r for r in roles.values() if r["reports_to"] == chief["id"]]
+    colors = {"user": palette[0], chief["id"]: palette[3]}
+    def branch(role):
+        while role["reports_to"] not in ("user", chief["id"]):
+            role = roles[role["reports_to"]]
+        return role["id"]
+    # Reserve separate lanes for each subtree; grouping stays readable after expansion.
+    lane_widths = {}
+    for dep in departments:
+        counts = {}
+        for role in roles.values():
+            if role["id"] != chief["id"] and branch(role) == dep["id"]:
+                level = depth(role, roles)
+                counts[level] = counts.get(level, 0) + 1
+        lane_widths[dep["id"]] = max(counts.values()) * (card_w+gap)-gap+40
+    if departments:
+        span = sum(lane_widths.values()) + gap*(len(departments)-1)
+        width = max(width, span+100)
+        positions[chief["id"]] = ((width-card_w)/2,108)
+        left = (width-span)/2
+        for dep in departments:
+            lw = lane_widths[dep["id"]]
+            for level, entries in levels.items():
+                group = [r for r in entries if r["id"] != chief["id"] and branch(r) == dep["id"]]
+                for i, role in enumerate(group):
+                    x = left+(lw-len(group)*(card_w+gap)+gap)/2+i*(card_w+gap)
+                    positions[role["id"]] = (x,285+(level-2)*165)
+            left += lw+gap
+    for role in roles.values():
+        if role["id"] != chief["id"]:
+            bid = branch(role)
+            idx = next((i for i, dep in enumerate(departments) if dep["id"] == bid), 0)
+            colors[role["id"]] = palette[idx % len(palette)]
+    svg = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-labelledby="title">',
+           f'<title id="title">{html.escape(org["project"])} agent organization chart</title>',
+           '<defs><linearGradient id="bg" x2="0" y2="1"><stop stop-color="#202f3b"/><stop offset="1" stop-color="#111c28"/></linearGradient><linearGradient id="panel" x2="1" y2="1"><stop stop-color="#253748"/><stop offset="1" stop-color="#162330"/></linearGradient><filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4"/></filter></defs>',
+           f'<rect width="{width}" height="{height}" fill="url(#bg)"/>',
+           f'<text x="{width/2}" y="44" text-anchor="middle" fill="#eef7ff" font-family="Arial,sans-serif" font-size="27" font-weight="700">{html.escape(org["project"][:80])}</text>',
+           f'<text x="{width/2}" y="70" text-anchor="middle" fill="#91aabd" font-family="monospace" font-size="12" letter-spacing="2">AGENTIC ORGANIZATION / USER-GOVERNED COMMAND</text>']
+    # Decorative circuit traces do not represent reporting relationships.
+    for i in range(12):
+        y = 95 + i*53
+        for side in (0,1):
+            start = 0 if side == 0 else width
+            sign = 1 if side == 0 else -1
+            svg.append(f'<path d="M{start} {y} h{sign*65} l{sign*22} 20 h{sign*95}" fill="none" stroke="#58a2a6" stroke-opacity=".11"/>')
+    for dep in departments:
+        members = [r for r in roles.values() if r["id"] != chief["id"] and branch(r) == dep["id"]]
+        xs = [positions[r["id"]][0] for r in members]
+        ys = [positions[r["id"]][1] for r in members]
+        left, top = min(xs)-20, min(ys)-34
+        pw, ph = max(xs)-min(xs)+card_w+40, max(ys)-min(ys)+card_h+55
+        color = colors[dep["id"]]
+        svg.append(f'<rect x="{left}" y="{top}" width="{pw}" height="{ph}" rx="16" fill="{color}" fill-opacity=".025" stroke="{color}" stroke-opacity=".35"/>')
+        svg.append(f'<text x="{left+18}" y="{top+22}" fill="{color}" font-family="monospace" font-size="11" letter-spacing="1.5">WORKSTREAM / {html.escape(dep["id"].upper())}</text>')
+    for role in roles.values():
+        x,y=positions[role["id"]]; px,py=positions[role["reports_to"]]
+        color=colors[role["id"]]
+        if role["reports_to"] == "user":
+            path=f'M{px+card_w} {py+card_h/2} H{x}'
+        else:
+            sx,sy,ex,ey=px+card_w/2,py+card_h,x+card_w/2,y
+            mid=(sy+ey)/2
+            path=f'M{sx} {sy} V{mid} H{ex} V{ey}'
+        svg.append(f'<path data-parent="{role["reports_to"]}" data-child="{role["id"]}" d="{path}" fill="none" stroke="{color}" stroke-width="9" opacity=".55" filter="url(#glow)"/>')
+        svg.append(f'<path d="{path}" fill="none" stroke="{color}" stroke-width="2.5"/>')
+    owner={"id":"user","title":"Supreme Commander / User","tier":"owner","assignee":"human"}
+    for role in [owner,*roles.values()]:
+        x,y=positions[role["id"]];color=colors[role["id"]]
+        executive=role["tier"] in ("owner","director")
+        if executive:
+            points=f'{x+22},{y} {x+card_w-22},{y} {x+card_w},{y+card_h/2} {x+card_w-22},{y+card_h} {x+22},{y+card_h} {x},{y+card_h/2}'
+            shape=f'<polygon points="{points}"'
+        else:
+            shape=f'<rect x="{x}" y="{y}" width="{card_w}" height="{card_h}" rx="13"'
+        svg.append(shape+f' fill="none" stroke="{color}" stroke-width="5" opacity=".5" filter="url(#glow)"/>')
+        svg.append('<g>'+f'<title>{html.escape(role["title"])} / {html.escape(role.get("assignee") or "VACANT")}</title>'+shape+f' fill="url(#panel)" stroke="{color}" stroke-width="2"/>')
+        lines=textwrap.wrap(role["title"],width=39) or [""]
+        if len(lines)>2: lines=[lines[0],lines[1][:-1]+"…"]
+        for j,line in enumerate(lines[:2]):
+            svg.append(f'<text x="{x+card_w/2}" y="{y+31+j*24}" text-anchor="middle" fill="#edf8ff" font-family="Arial,sans-serif" font-size="20" font-weight="700">{html.escape(line)}</text>')
+        status=f'{role["tier"].upper()} / {role.get("assignee") or "VACANT"}'
+        svg.append(f'<text x="{x+card_w/2}" y="{y+81}" text-anchor="middle" fill="{color}" font-family="monospace" font-size="12">{html.escape(status[:48])}</text>')
+        svg.append('</g>')
+    svg.append(f'<rect x="35" y="{height-65}" width="{width-70}" height="42" rx="10" fill="#172937" stroke="#58a2a6" stroke-opacity=".35"/>')
+    svg.append(f'<text x="{width/2}" y="{height-39}" text-anchor="middle" fill="#9cb4c6" font-family="monospace" font-size="12">ROSTER {roster_digest(org)[:16]} / VACANT ≠ RUNNING / SOLID LINES = REPORTING</text>')
+    return "\n".join(svg)+"\n</svg>\n"
+
+
 def _render(org, output):
     validate(org)
     target = Path(output).resolve()
@@ -328,38 +433,7 @@ def _render(org, output):
         mmd = "\n".join(lines) + "\n"
         (stage / "orgchart.mmd").write_text(mmd, encoding="utf-8")
         (stage / "orgchart.md").write_text("# " + org["project"] + "\n\n```mermaid\n" + mmd + "```\n", encoding="utf-8")
-        card_w, card_h, gap = 330, 108, 38
-        width = max(760, max(len(v) for v in levels.values()) * (card_w + gap) + 40)
-        height = (max(levels) + 1) * 170 + 105
-        positions = {}
-        for level, entries in sorted(levels.items()):
-            for i, role in enumerate(entries):
-                x = (width - len(entries) * (card_w + gap) + gap) / 2 + i * (card_w + gap)
-                positions[role["id"]] = (x, 95 + level * 170)
-        svg = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-labelledby="title">',
-               f'<title id="title">{html.escape(org["project"])} agent organization chart</title>',
-               f'<rect width="{width}" height="{height}" fill="#0b1220"/>',
-               f'<text x="28" y="35" fill="#f1f5f9" font-family="Arial,sans-serif" font-size="23">{html.escape(org["project"][:90])}</text>',
-               f'<text x="28" y="62" fill="#94a3b8" font-family="monospace" font-size="12">ROSTER {roster_digest(org)[:16]} · diagram does not imply agents are running</text>']
-        for role in roles.values():
-            x, y = positions[role["id"]]
-            px, py = positions[role["reports_to"]]
-            sx, sy, ex, ey = px + card_w / 2, py + card_h, x + card_w / 2, y
-            mid = (sy + ey) / 2
-            svg.append(f'<path d="M{sx} {sy} V{mid} H{ex} V{ey}" fill="none" stroke="#475569" stroke-width="2"/>')
-        colors = {"user": "#fbbf24", "director": "#5eead4", "manager": "#93c5fd", "worker": "#c4b5fd"}
-        for entries in levels.values():
-            for role in entries:
-                x, y = positions[role["id"]]
-                color = colors[role["tier"]]
-                svg.append(f'<rect x="{x}" y="{y}" width="{card_w}" height="{card_h}" rx="12" fill="#152033" stroke="{color}"/>')
-                title_lines = textwrap.wrap(role["title"], width=32) or [""]
-                for j, title in enumerate(title_lines[:2]):
-                    svg.append(f'<text x="{x+16}" y="{y+27+j*21}" fill="#f1f5f9" font-family="Arial,sans-serif" font-size="16">{html.escape(title)}</text>')
-                status = f"{role['tier'].upper()} / {role.get('assignee') or 'VACANT'}"
-                svg.append(f'<text x="{x+16}" y="{y+77}" fill="{color}" font-family="monospace" font-size="12">{html.escape(status[:42])}</text>')
-                svg.append(f'<text x="{x+16}" y="{y+95}" fill="#94a3b8" font-family="monospace" font-size="10">{html.escape(role["id"])}</text>')
-        (stage / "orgchart.svg").write_text("\n".join(svg) + "\n</svg>\n", encoding="utf-8")
+        (stage / "orgchart.svg").write_text(enterprise_svg(org), encoding="utf-8")
         (stage / "personas").mkdir()
         (stage / "forms").mkdir()
         for role_index, role in enumerate(roles.values(), 1):
