@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Swarm"
+  short_description: "Design agent teams, roles, prompts, and review cycles"
+  default_prompt: "Use $agent-swarm to design a project-specific team, generate its org chart and persona prompts, and propose staffing for my approval."

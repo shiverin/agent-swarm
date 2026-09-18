@@ -1,0 +1,15 @@
+{
+  "project": "Reusable Agent Skills Studio",
+  "mission": "Build useful skill packages and prove they work through reproducible examples.",
+  "kind": "engineering",
+  "budget_work_units": 60,
+  "deliverables": ["Validated skill package", "Pipeline script", "Generated example and verification report"],
+  "acceptance": ["A clean offline run produces the promised artifacts", "Invalid or conflicting assignments are rejected", "Persona prompts preserve user authority"],
+  "constraints": ["No external publishing without user authorization", "Keep credentials and private source material out of deliverables"],
+  "allowed_permissions": ["read-project", "write-artifacts", "run-local-checks"],
+  "agents": [
+    {"id": "lead", "capabilities": ["coordination", "review", "implementation", "validation"]},
+    {"id": "builder", "capabilities": ["implementation", "review"]},
+    {"id": "checker", "capabilities": ["validation", "review"]}
+  ]
+}

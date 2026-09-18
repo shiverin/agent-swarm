@@ -1,0 +1,35 @@
+{
+  "id": "staff-example",
+  "base_fingerprint": "f44149fde6545ed04e031dc5d3f588dcd28d0de9fd15729a7b3d32cad4f79f22",
+  "author": "user",
+  "problem": "The three example roles are vacant.",
+  "evidence": [
+    "assets/example-lean-org.json"
+  ],
+  "alternatives": [
+    "Leave the team unstaffed until agents are available"
+  ],
+  "expected_benefit": "Give each example workstream a single accountable owner.",
+  "budget_impact": "No change to the project work-unit cap.",
+  "risks": [
+    "Registry capabilities must be verified by the integrating host"
+  ],
+  "rollback": "Release the assigned agents through a new user-approved proposal.",
+  "operations": [
+    {
+      "op": "assign",
+      "agent_id": "lead",
+      "role_id": "chief-director"
+    },
+    {
+      "op": "assign",
+      "agent_id": "builder",
+      "role_id": "implementation-worker"
+    },
+    {
+      "op": "assign",
+      "agent_id": "checker",
+      "role_id": "validation-worker"
+    }
+  ]
+}

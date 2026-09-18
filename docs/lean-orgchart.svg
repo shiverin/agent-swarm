@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="776" height="615" viewBox="0 0 776 615" role="img" aria-labelledby="title">
+<title id="title">Reusable Agent Skills Studio agent organization chart</title>
+<rect width="776" height="615" fill="#0b1220"/>
+<text x="28" y="35" fill="#f1f5f9" font-family="Arial,sans-serif" font-size="23">Reusable Agent Skills Studio</text>
+<text x="28" y="62" fill="#94a3b8" font-family="monospace" font-size="12">ROSTER 24e982ca66125cd6 · diagram does not imply agents are running</text>
+<path d="M388.0 203 V234.0 H388.0 V265" fill="none" stroke="#475569" stroke-width="2"/>
+<path d="M388.0 373 V404.0 H204.0 V435" fill="none" stroke="#475569" stroke-width="2"/>
+<path d="M388.0 373 V404.0 H572.0 V435" fill="none" stroke="#475569" stroke-width="2"/>
+<rect x="223.0" y="95" width="330" height="108" rx="12" fill="#152033" stroke="#fbbf24"/>
+<text x="239.0" y="122" fill="#f1f5f9" font-family="Arial,sans-serif" font-size="16">User / Organization Owner</text>
+<text x="239.0" y="172" fill="#fbbf24" font-family="monospace" font-size="12">USER / human</text>
+<text x="239.0" y="190" fill="#94a3b8" font-family="monospace" font-size="10">user</text>
+<rect x="223.0" y="265" width="330" height="108" rx="12" fill="#152033" stroke="#5eead4"/>
+<text x="239.0" y="292" fill="#f1f5f9" font-family="Arial,sans-serif" font-size="16">Chief Director</text>
+<text x="239.0" y="342" fill="#5eead4" font-family="monospace" font-size="12">DIRECTOR / VACANT</text>
+<text x="239.0" y="360" fill="#94a3b8" font-family="monospace" font-size="10">chief-director</text>
+<rect x="39.0" y="435" width="330" height="108" rx="12" fill="#152033" stroke="#c4b5fd"/>
+<text x="55.0" y="462" fill="#f1f5f9" font-family="Arial,sans-serif" font-size="16">Implementation Worker</text>
+<text x="55.0" y="512" fill="#c4b5fd" font-family="monospace" font-size="12">WORKER / VACANT</text>
+<text x="55.0" y="530" fill="#94a3b8" font-family="monospace" font-size="10">implementation-worker</text>
+<rect x="407.0" y="435" width="330" height="108" rx="12" fill="#152033" stroke="#c4b5fd"/>
+<text x="423.0" y="462" fill="#f1f5f9" font-family="Arial,sans-serif" font-size="16">Independent Validation Worker</text>
+<text x="423.0" y="512" fill="#c4b5fd" font-family="monospace" font-size="12">WORKER / VACANT</text>
+<text x="423.0" y="530" fill="#94a3b8" font-family="monospace" font-size="10">validation-worker</text>
+</svg>
