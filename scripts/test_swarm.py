@@ -290,7 +290,7 @@ class SwarmTests(unittest.TestCase):
     def test_permission_expansion_and_remove_occupied_parent_rejected(self):
         self.staff()
         with self.assertRaises(swarm.Invalid):
-            self.apply([{"op": "update-role", "role_id": "chief-director", "changes": {"permissions": ["broker-orders"]}}], "expand")
+            self.apply([{"op": "update-role", "role_id": "chief-director", "changes": {"permissions": ["network-admin"]}}], "expand")
         with self.assertRaises(swarm.Invalid):
             self.apply([{"op": "remove-role", "role_id": "chief-director"}], "delete")
         with self.assertRaises(swarm.Invalid):

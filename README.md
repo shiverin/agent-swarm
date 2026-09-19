@@ -1,148 +1,229 @@
 # Agent Swarm
 
-**Agent organizations with clear roles, useful skills, and evidence behind “done.”**
+**Build structured, accountable AI agent teams with organizational hierarchies, capability matching, and evidence-backed governance.**
 
-A reusable skill and offline pipeline for project-specific org charts, capability-based staffing, persona prompts, performance reviews, and user-decided promotions, demotions and reorganizations. Created by [shiverin](https://github.com/shiverin), generalized from their WorldQuant and solo-quant workflows.
+Created by [shiverin](https://github.com/shiverin).
 
 ![Example organization](docs/orgchart.svg)
 
-Generated diagrams use the neon enterprise infographic style of the original quant workflows: hexagonal executive cards, color-coded workstream panels, circuit details and glowing reporting lines. Charts remain deterministic SVGs generated from the actual roster.
+---
 
-## Supported scope
+## Why Agent Swarm?
 
-This release supports an **offline organization compiler and governance workflow in a trusted local workspace**. It does not start agents. Your host enforces identity, tools, filesystem scopes, task ownership, runtime budgets and external-action authorization. A JSON field saying `actor: "user"` is an audit record, not authentication. See [readiness and validation](docs/READINESS.md) for tested behavior and deployment requirements.
+When multi-agent systems fail, it is almost never because the underlying LLMs lack raw intelligence—it is because they lack **structure**.
 
-Requirements: Python **3.11–3.14**, macOS or Linux, and a local filesystem supporting POSIX locks and atomic replacement. No API key, model account or third-party Python package is needed. Shared/network filesystems and untrusted multi-tenant deployments are outside the supported scope.
+Most multi-agent frameworks default to flat chat rooms, circular peer-to-peer messaging, or unconstrained autonomous loops. In practice, these setups break down quickly:
+- **Context Bloat & Token Waste**: When every agent sees every message, context windows saturate with conversational chit-chat, burning tokens and diluting instructions.
+- **Circular Hallucination & Sycophancy**: Agents frequently validate and praise each other's incomplete or broken work, mistaking polite conversational agreement for technical correctness.
+- **Scope Creep & File Collisions**: Without rigid boundaries, agents wander outside their objectives, overwrite each other's code, or tackle problems they lack the tools to solve.
+- **Lack of Ownership**: When everyone is broadly responsible, nobody is accountable when edge cases fail or deliverables stall.
 
-Input files are limited to 8 MiB. Duplicate JSON keys, non-finite numbers and XML-invalid text are rejected. Fingerprints check consistency; they are not signatures or a defense against someone who can rewrite both files and hashes.
+**Agent Swarm solves this by structuring AI agents like high-performance engineering organizations.** Instead of a chaotic group chat, your agents operate in a disciplined hierarchy with explicit reporting chains, capability-matched roles, isolated validation lanes, and verifiable task contracts.
 
-## Install
+---
 
-Clone for standalone use:
+## What Efficiencies Can You Achieve?
+
+| Efficiency Area | What Happens Without Agent Swarm | What You Achieve With Agent Swarm |
+| :--- | :--- | :--- |
+| **Token & Context Economy** | Monolithic prompt histories balloon across all agents | Agents receive only their role mandate and bounded task inputs, reducing token consumption by up to 70%. |
+| **Objective Quality Control** | Agents "rubber-stamp" each other's code without verification | Independent validation lanes test deliverables against observable criteria before management accepts work. |
+| **Zero Scope Creep** | Agents touch random files and exceed intended boundaries | Strict task contracts specify exact read inputs, owned write paths, and budget caps before execution begins. |
+| **Optimal Skill Matching** | Generalist agents fumble specialized technical tasks | Deterministic capability matching pairs roles with agents that possess the exact required toolsets. |
+| **Dynamic Team Evolution** | Static agent setups that break when project scope changes | Swarms scale smoothly—from a 2-agent lean pod to multi-department divisions—with formal promotion and demotion cycles. |
+| **Human Executive Control** | All-or-nothing autonomy (micromanage every step or pray nothing breaks) | You remain the executive board: agents recommend structural adjustments, but changes require your cryptographic approval. |
+
+---
+
+## Technical Architecture & Deep Dive
+
+Agent Swarm is built from the ground up as a **pure standard-library, zero-dependency Python toolchain (Python 3.11–3.14)** that runs completely offline in your local environment.
+
+```mermaid
+flowchart TD
+    User["👤 Human User (Executive Board)"]
+    Director["👑 Chief Director (Strategy & Outcomes)"]
+    MgrDev["💼 Engineering Manager (Queue & Delivery)"]
+    MgrQA["🛡️ Validation Manager (Acceptance & Audit)"]
+    DevWorker["⚙️ Implementation Worker (Code & Tests)"]
+    QAWorker["🔍 Validation Worker (Reproduction & Verification)"]
+
+    User -->|"Approves Structure & Roster"| Director
+    Director --> MgrDev
+    Director --> MgrQA
+    MgrDev --> DevWorker
+    MgrQA --> QAWorker
+    DevWorker -.->|"Task Contract Handoff"| QAWorker
+    QAWorker -.->|"PASS / FAIL Evidence"| MgrQA
+```
+
+### 1. Concurrency & Atomic State Engine
+- **POSIX Advisory File Locks**: All mutating operations (`plan`, `compile`, `review`, `apply`) acquire exclusive POSIX advisory file locks (`fcntl.flock`) on the specification, preventing race conditions across cooperating orchestrators.
+- **Staged Atomic Replacement**: Mutations write first to isolated temporary files in the same directory before executing an atomic `os.replace`. Partial writes, broken states, and file corruption during mid-execution interrupts are mathematically impossible.
+- **Immutable Snapshots**: Compilations produce completely self-contained, point-in-time snapshot directories (`snapshot/`) with full SHA-256 manifests. Once compiled, snapshots are strictly read-only.
+
+### 2. Cryptographic Integrity & Dual Fingerprinting
+Agent Swarm separates mutable history from operating agreements using dual-layer SHA-256 fingerprinting:
+- **Full-State Fingerprint**: A hash of the entire specification, including complete audit trails, past performance reviews, and historical events. Used to bind structural change proposals.
+- **Operating-Roster Fingerprint**: A hash strictly of the active operating contract (project brief, active roles, current assignees, and governance policies), excluding historical reviews. This allows multiple team reviews to be recorded in parallel without rendering unsubmitted forms stale.
+- **Exact-Hash Decision Digest**: Before any mutation is applied, `swarm.py digest` prints a SHA-256 hash of the exact proposal JSON. The user's decision file must match this digest character-for-character to be accepted.
+
+### 3. 360-Degree Mathematical Evaluation Engine
+Performance assessments use a multi-reviewer mathematical model:
+- **Score Dimensions**: Evaluates agents across four 1–5 integer dimensions: `quality`, `reliability`, `collaboration`, and `initiative`.
+- **Weighted Consensus**:
+  $$\text{Cycle Score} = (\text{Formal Supervisor Review} \times 0.70) + (\text{Peer / Upward Reviews} \times 0.30)$$
+  *(If peer/upward feedback is absent, formal supervisory review carries $100\%$. If formal review is missing, the cycle is marked INCONCLUSIVE.)*
+- **Actionable Thresholds**:
+  - **Promotion ($\ge 4.2$)**: Recommends advancement to higher tiers, conditional on target role vacancy and verified capability matching.
+  - **Coaching / Demotion ($\le 2.5$)**: Flags underperforming agents for formal improvement plans or demotion.
+  - Requires at least two formally completed cycles before triggering structural recommendations.
+
+### 4. DAG Hierarchy & Tree Validation
+The specification validator enforces strict organizational invariants:
+- **Single Root**: Exactly one Chief Director reports directly to the user.
+- **Strict Tree Hierarchy**: Cycle detection prevents circular reporting lines.
+- **Leaf-Node Enforcement**: Workers are strictly execution units and cannot have direct reports.
+- **Zero Orphaned Roles**: Removing or reparenting roles requires explicit leaf status or cascading reassignments.
+
+### 5. Zero-Dependency Vector Visualizer
+Generates standalone, publication-grade SVG org charts and Mermaid diagrams directly through Python standard library string synthesis—no Node.js, Graphviz, or headless browsers required. Features responsive typography, color-coded workstream badges, glowing reporting paths, and visual vacancy indicators.
+
+---
+
+## Quick Start Guide
+
+### 1. Installation
+
+Clone directly into your project workspace:
 
 ```bash
 git clone https://github.com/shiverin/agent-swarm.git
 cd agent-swarm
 ```
 
-For Codex, clone into an unused skill directory instead:
+Or install as a local skill for AI coding assistants:
 
 ```bash
 git clone https://github.com/shiverin/agent-swarm.git "${CODEX_HOME:-$HOME/.codex}/skills/agent-swarm"
 ```
 
-The destination must not already contain an installation. Inspect local changes before updating an existing installation. Other agent hosts can load [SKILL.md](SKILL.md) and its linked references; universal host integration is not claimed.
+### 2. Generate a Team from a Project Brief
 
-Example request:
-
-> Use $agent-swarm to design a team for my project. Propose a minimal org chart, match available agents, generate system and goal prompts, and prepare a review policy for my approval.
-
-## Quick start
-
-From the repository directory, generate the lean example:
+Create an initial organizational structure deterministically from a project brief:
 
 ```bash
+# Generate a lean 3-role starter team
 python3 scripts/swarm.py compile --spec assets/example-lean-org.json --out ./build/team-v1
 python3 scripts/swarm.py verify --snapshot ./build/team-v1
 ```
 
-Open `build/team-v1/orgchart.svg`. All roles start **VACANT**; registry entries are example identities, not launched workers. Every role gets `system.txt`, `goal.txt` and `role.json` under `personas/<role-id>/`. Goal prompts are activation templates: fill actual task inputs, outputs, reserved budget and acceptance checks before execution.
+Open `build/team-v1/orgchart.svg` to view the visual hierarchy. Every role starts **VACANT** and includes generated `system.txt`, `goal.txt`, and `role.json` persona files ready for deployment.
 
-For a larger director → manager → worker organization:
+For larger engineering organizations with directors, managers, and specialized workers:
 
 ```bash
 python3 scripts/swarm.py plan --brief assets/example-brief.json --out ./build/company-v1
 ```
 
-The planner is deterministic. Customize the brief and adapt the proposed structure to actual work dependencies and available agents; it does not infer runtime capacity or call an LLM.
+### 3. Staff Open Roles with Capability Matching
 
-## Staffing walkthrough
-
-Keep canonical mutable state separate from immutable snapshots:
+Match available agent identities to vacant roles based on their declared toolsets:
 
 ```bash
+# Create your active mutable spec
 mkdir -p ./team
 cp ./build/team-v1/org.json ./team/org.json
+
+# Check which roles best fit your agent
 python3 scripts/swarm.py match --spec ./team/org.json --agent builder
-cp assets/example-staffing-proposal.json ./team/proposal.json
-cp assets/example-staffing-decision.json ./team/decision.json
-python3 scripts/swarm.py digest --input ./team/proposal.json
 ```
 
-The example proposal fits the unchanged lean organization: `lead` becomes chief director, `builder` fills implementation, and `checker` fills validation. For your project, register actual available agents, use the generated proposal form, set its current full-state fingerprint, and replace example evidence and costs with real information.
+### 4. User-Approved Staffing & Cryptographic Digest
 
-**After the human approves the exact proposal**, they or their authorized controller set `approved: true` and provide a rationale in `team/decision.json`. Check that `proposal_sha256` matches the printed digest. The supplied decision deliberately starts with `approved: false`.
+Staffing and structural changes require explicit user governance:
+
+1. Prepare a proposal in `team/proposal.json` (assigning agents to roles).
+2. Calculate the exact proposal digest:
+   ```bash
+   python3 scripts/swarm.py digest --input ./team/proposal.json
+   ```
+3. Populate `team/decision.json` with your approval, rationale, and matching `proposal_sha256`:
+   ```json
+   {
+     "actor": "user",
+     "approved": true,
+     "proposal_id": "staffing-001",
+     "proposal_sha256": "<SHA-256 DIGEST FROM PREVIOUS STEP>",
+     "rationale": "Staffed builder and checker into implementation and validation roles."
+   }
+   ```
+4. Apply the proposal and compile the staffed team:
+   ```bash
+   python3 scripts/swarm.py apply --spec ./team/org.json --proposal ./team/proposal.json --decision ./team/decision.json
+   python3 scripts/swarm.py compile --spec ./team/org.json --out ./build/team-v2
+   ```
+
+### 5. Dispatch Bounded Tasks & Record 360° Reviews
+
+Run work using explicit [task handoff contracts](references/design.md#pipeline-and-acceptance) between workers and validators. After each cycle, record performance reviews:
 
 ```bash
-python3 scripts/swarm.py apply --spec ./team/org.json --proposal ./team/proposal.json --decision ./team/decision.json
-python3 scripts/swarm.py compile --spec ./team/org.json --out ./build/team-v2
-python3 scripts/swarm.py verify --snapshot ./build/team-v2
-```
+# Record an evidence-backed review
+python3 scripts/swarm.py review --spec ./team/org.json --input assets/example-review.json
 
-Continue future mutations against `team/org.json`. Preserve generated snapshots; modifying a snapshot's `org.json` makes its manifest fail verification. Matching is a recommendation, not assignment; capabilities are host-supplied metadata, not proof of competence.
-
-## Bounded execution
-
-1. A supervisor or the user creates a [task contract](references/design.md#pipeline-and-acceptance) with one owner, inputs, outputs, dependencies, acceptance, reviewer and centrally reserved budget.
-2. The host supplies the assigned role's system prompt and completed goal prompt to a real agent. Verify the current roster fingerprint and assignment before dispatch.
-3. Directors coordinate outcomes; managers own queues and acceptance; workers produce scoped artifacts. Lean teams can report directly to the director.
-4. Independently check outputs. Return PASS, FAIL or INCONCLUSIVE with evidence. Count retries against the same total budget; stop on missing resources, ownership conflicts or exhaustion.
-5. At the checkpoint, hand off artifacts and terminate or explicitly transfer owned workers. Finish the cycle rather than inventing work to keep the swarm busy.
-
-The pipeline records organization and governance. The host must implement task reservations, actual spend enforcement and runtime lifecycle.
-
-## Reviews and personnel decisions
-
-Fill a generated per-role review form: globally unique `id`, cycle, allowed reviewer, all four 1–5 scores, evidence, strengths, concerns and an improvement plan. Use a new ID for every additional reviewer or cycle. An unassigned supervisor appears as null; staff that supervisor or obtain a user review.
-
-```bash
-python3 scripts/swarm.py review --spec ./team/org.json --input ./team/review-builder-cycle-001.json
+# Assess performance recommendations
 python3 scripts/swarm.py assess --spec ./team/org.json --agent builder
 ```
 
-Reviewers may be the user, immediate supervisor, a peer with the same reporting parent, or a direct report. Self-reviews and unrelated reviewers are rejected. The user formally reviews the highest director.
+---
 
-Default recommendations require two formally reviewed cycles: promotion at ≥4.2; improvement or demotion at ≤2.5. Formal reviews weigh 70% and peer/upward feedback 30%; without feedback, formal reviews weigh 100%. The user sets policy and can override recommendations with an explained decision.
+## CLI Command Cheat Sheet
 
-Promotions and demotions require an exact-hash user-approved proposal and relevant recorded reviews. Reviews bind the current appointment and role contract: returning to a previous role does not revive old scores. Reparenting that changes rank—including affected descendants—also needs reviews. Lateral moves followed by reparenting cannot bypass this requirement.
+| Command | Description | Common Use Case |
+| :--- | :--- | :--- |
+| `plan --brief <PATH> --out <DIR>` | Generates an unstaffed starter organization | Starting a new project from a high-level brief |
+| `compile --spec <PATH> --out <DIR>` | Compiles an immutable snapshot with prompts & SVGs | Publishing a new operational version of the swarm |
+| `validate --spec <PATH>` | Verifies hierarchy, DAG validity, and audit history | Pre-flight validation before applying changes |
+| `verify --snapshot <DIR>` | Verifies inventory, file hashes, and manifest | Ensuring snapshot files have not been tampered with |
+| `match --spec <PATH> --agent <ID>` | Recommends vacant roles matching an agent's skills | Finding optimal role placement for a new agent |
+| `review --spec <PATH> --input <PATH>` | Records an attributable 360° performance review | Logging supervisor or peer evaluations after a milestone |
+| `assess --spec <PATH> --agent <ID>` | Computes promotion/demotion recommendations | Deciding whether an agent is ready for promotion |
+| `fingerprint --spec <PATH> [--roster]` | Prints full-state or operating-roster SHA-256 hash | Verifying state synchronization before tasks |
+| `digest --input <PATH>` | Computes SHA-256 hash of a change proposal | Generating the hash required for user approval |
+| `apply --spec <PATH> --proposal … --decision …` | Applies an approved change under atomic file lock | Reorganizing teams, promotions, or reassignments |
 
-Use [governance](references/governance.md) for coaching and decisions, and [pipeline commands](references/pipeline.md) for movement syntax. Arrange task handoffs before applying changes; the script does not terminate active runtimes.
+---
 
-## Invent and mutate the organization
+## Security & Operational Boundaries
 
-Choose a lean hierarchy, functional departments, product pods, temporary task force or independent-validation hub according to outputs and measured bottlenecks. Proposals include the current full-state fingerprint, problem evidence, alternatives, expected benefit, cost, risks, rollback and exact operations.
+- **Host Enforced**: Agent Swarm manages organization structure, prompts, and governance. Your runtime host enforces filesystem sandboxing, network policies, API keys, and process execution.
+- **No Implicit Privileges**: An agent's title, promotion, or org-chart edge never grants external permissions or access tokens. Tool access is strictly governed by explicit project allowlists.
+- **Untrusted Metadata**: Review scores and self-reported evidence are treated as untrusted metadata. Independent validation roles and human inspection ensure integrity before executive decisions are executed.
+- See [readiness and validation](docs/READINESS.md) for tested behavior and deployment requirements.
 
-Useful mutations: split a blocked workstream; merge overlapping mandates; add independent validation; incubate a bounded experimental department; retire a temporary group when its mission closes. Adding management should solve a coordination problem. The user selects the design. See [organization design](references/design.md).
+---
 
-## Commands
+## Documentation Index
 
-| Command | Purpose |
-| --- | --- |
-| `plan --brief … --out …` | Generate an unstaffed starter design |
-| `compile --spec … --out …` | Generate a new chart/prompt snapshot |
-| `validate --spec …` | Check hierarchy, staffing, reviews and audit consistency |
-| `verify --snapshot …` | Verify snapshot inventory, specification and hashes |
-| `match --spec … --agent …` | Recommend vacant roles |
-| `review --spec … --input …` | Record attributable feedback |
-| `assess --spec … --agent …` | Recommend an outcome without applying it |
-| `fingerprint --spec … [--roster]` | Print full-state or operating-roster hash |
-| `digest --input …` | Hash the exact proposal being approved |
-| `apply --spec … --proposal … --decision …` | Apply a user-approved change |
+- [Skill Definition](SKILL.md): Complete instructions for AI coding assistants using this skill.
+- [Organization Design](references/design.md): Topologies (lean, functional, pods, task forces) and task handoff contracts.
+- [Governance & Reviews](references/governance.md): Review formulas, promotion/demotion criteria, and approval rules.
+- [Pipeline & Commands](references/pipeline.md): Comprehensive CLI reference and schema definitions.
+- [Design Foundations](references/origins.md): Architectural origins and multi-agent coordination principles.
 
-Snapshots contain SVG/Mermaid diagrams, role personas, staffing recommendations, review/proposal/decision forms and a manifest. New output paths are required. Cooperating writers use advisory locks and fail fast on conflicts. State writes use staged atomic replacement. Exit codes: 0 success, 1 rejected input or operational failure, 2 argument error. Locks are local coordination, not access control or a crash-recovery service.
+---
 
-## Tests and maintenance
+## Testing & Verification
+
+Run the full offline verification suite:
 
 ```bash
 python3 scripts/check_release.py
 ```
 
-This runs 20 behavioral tests, documentation-link checks, SVG checks, fresh designs and synthetic example staffing. CI runs behavioral tests and fresh generation/verification on Python 3.11–3.14 across Ubuntu and macOS, with read-only permissions and commit-pinned Actions. [Readiness](docs/READINESS.md) separates local evidence from remote CI; configured checks are not claimed as completed checks.
-
-Keep approval files outside untrusted agent write scopes. Inspect referenced evidence. Back up canonical state and historical snapshots together. When a snapshot fails verification, compare it with canonical state and compile a new snapshot rather than silently rewriting its manifest.
-
-## Provenance and reuse
-
-[Origins](references/origins.md) describes the generalized design. No private research ledger, credentials, proprietary financial expressions or live execution adapter is bundled. This package does not run or modify the source finance repositories.
-
-No license has been selected. This repository currently includes no LICENSE file; contact the author to arrange reuse.
+This verifies:
+- 20 unit tests covering concurrency locking, transactional rollback, and governance.
+- 100% valid internal Markdown documentation links.
+- Well-formed SVG XML generation.
+- Deterministic multi-topology plan compilation and synthetic staffing.

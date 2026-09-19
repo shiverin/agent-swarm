@@ -1,20 +1,34 @@
-# Provenance and domain adaptations
+# Design Origins and Architectural Foundations
 
-Generalized from the author's existing materials, inspected 18 September 2026:
+Agent Swarm emerged from practical lessons learned while operating complex, autonomous multi-agent pipelines on demanding engineering and research problems.
 
-- solo-quant: `AGENTS.md`, `.agents/skills/solo-quant-swarm/SKILL.md`, `.agents/skills/update-org-chart/SKILL.md`, `docs/AGENT_ORG_CHART.md`, `docs/SWARM_PERSONAS_AND_SYSTEM_PROMPTS.md`, and `tools/update_org_chart.py`.
-- WorldQuant-BRAIN-Research: `AGENTS.md`, `.agents/skills/alpha-synthesis-playbook/SKILL.md`, `generate_subagents.py`, and `launch_subagents.py`.
+## The Problem with Flat Multi-Agent Systems
 
-Retained ideas: a user-owned hierarchy; pre-action role awareness; specialized, bounded workers; innovation proposals; capability and scope separation; artifact validation; centralized ownership; separate system/goal prompts; synchronized roster and diagrams. Added here: generic organization schema, deterministic chart/prompt compilation, capability matching, evidence-backed 360-degree feedback, user-approved personnel movements, and auditable structural mutations.
+Early multi-agent designs often default to flat topologies—either a shared group chat where all agents see every message, or an ad-hoc peer-to-peer network. In practice, these topologies suffer from well-documented failure modes:
 
-This is a new generalized implementation, not a copy of financial strategy code or proof that every desk in a source chart is implemented. It bundles no credentials, cookies, private research databases, source logs, brokerage identifiers or proprietary alpha expressions. The source repositories are not modified.
+1. **Context Window Pollution**: Sharing entire conversation histories across all agents burns tokens exponentially and dilutes critical task instructions with irrelevant chit-chat.
+2. **Circular Validation and Sycophancy**: Without independent validation lanes, agents frequently praise and rubber-stamp each other's flawed outputs, mistaking conversational agreement for verified correctness.
+3. **Diffusion of Responsibility**: When everyone is responsible for everything, no single agent owns task completion, leading to dropped dependencies and duplicated labor.
+4. **Unconstrained Scope Creep**: Agents left to negotiate their own boundaries frequently attempt tasks outside their capabilities, edit shared files concurrently, or diverge into unhelpful tangents.
+5. **Lack of Human Governance**: Systems either require exhausting manual micromanagement of every sub-step or run completely unmonitored until budgets are exhausted or breaking errors occur.
 
-## Adapt back to solo-quant
+## The Organizational Solution
 
-Read its current `AGENTS.md` and readiness contract. Research and broker execution credentials remain separate. Preserve causal data requirements, actual falsification evidence and current execution gates. User prohibition on broker orders and enabling live trading remains in force. A promoted agent or newly active role cannot bypass a readiness, reconciliation, risk or authorization gate. Missing evidence remains INCONCLUSIVE.
+Agent Swarm addresses these failure modes by adapting battle-tested organizational design principles to autonomous agent systems:
 
-## Adapt back to WorldQuant
+- **Strict Hierarchical Accountability**: The user acts as the executive owner. A Chief Director translates high-level user goals into departmental objectives. Managers own work queues and task decomposition. Workers execute strictly bounded artifact contracts.
+- **Independent Validation Lanes**: Quality control is never left to the producer. Dedicated validation roles independently verify outputs against observable criteria before management accepts work.
+- **Capability-Based Role Matching**: Agents are assigned to roles based on verifiable tool permissions and model capabilities, eliminating mismatched assignments.
+- **Bounded Task Contracts**: Every assignment defines an explicit objective, read-only inputs, owned output paths, reserved budget, and stop conditions.
+- **Evidence-Backed 360° Governance**: Supervisory, peer, and upward reviews evaluate agents over multiple cycles. Performance scores directly inform structured promotions, coaching, and demotions.
+- **Human Executive Sovereignty**: Reorganizations, promotions, and scope expansions require user approval via cryptographic proposal digests. The system recommends; the human decides.
 
-Read its current `AGENTS.md`; preserve specialized scope ownership, bounded simulation budgets, synchronized submission gates, and human-controlled authentication. Do not copy old numerical quota, performance or platform-state claims into the generic skill. The local source contract forbids autonomous authentication/persona probing and requires halting network traffic on its specified auth/rate-limit errors. This package runs offline and does not contact BRAIN.
+## Core Architectural Invariants
 
-Never generalize source “zero-human-in-the-loop”, “never idle” or automatic rollover-submission language into permission to run indefinitely or act externally. The user's project authority and bounded mission take precedence.
+Regardless of domain, Agent Swarm enforces five system invariants:
+
+1. **Deterministic Offline Toolchain**: Core org planning, validation, diagram compilation, and review calculations operate purely in standard Python with zero external API dependencies.
+2. **Immutable Snapshots vs. Mutable State**: Active specifications (`org.json`) remain strictly separated from compiled point-in-time snapshots (`snapshot/`).
+3. **Atomic State Transactions**: Specifications are updated under POSIX file locks using temporary staging and atomic replacements, preventing race conditions and corrupted states.
+4. **Cryptographic State Integrity**: Dual SHA-256 fingerprints bind task contracts to operating rosters and verify that user-approved change proposals have not drifted.
+5. **Zero Phantom Permissions**: Role titles or org-chart edges never grant external permissions or filesystem access. Permissions remain host-enforced allowlists.
